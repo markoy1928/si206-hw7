@@ -190,10 +190,30 @@ def make_winners_table(data, cur, conn):
     conn.commit()
 
 def make_seasons_table(data, cur, conn):
-    pass
+    cur.execute("CREATE TABLE IF NOT EXISTS Seasons (id INT PRIMARY KEY, winner_id TEXT, end_year INT)")
+
+    seasons = data["seasons"]
+    for season in seasons:
+        if season["winner"] is not None:
+            cur.execute("insert or ignore into seasons values (?,?,?)", (season["id"], season["winner"]["id"], season["endDate"][:4]))
+
+    conn.commit()
 
 def winners_since_search(year, cur, conn):
-    pass
+    d = {}
+
+    cur.execute("select w.name from seasons s left join winners w on s.winner_id = w.id where s.end_year >= ?", (year,))
+    res = cur.fetchall()
+
+    for winner in res:
+        if winner[0] in d:
+            d[winner[0]] = d[winner[0]] + 1
+        else:
+            d[winner[0]] = 1
+
+    conn.commit()
+
+    return d
 
 
 class TestAllMethods(unittest.TestCase):
@@ -253,17 +273,20 @@ class TestAllMethods(unittest.TestCase):
         winners_list = self.cur2.fetchall()
 
         self.assertEqual(len(winners_list), 7)
-        self.assertTrue((65, "Manchester City FC"))
+        self.assertTrue((65, "Manchester City FC") in winners_list)
 
     def test_make_seasons_table(self):
         self.cur2.execute('SELECT * from Seasons')
         seasons_list = self.cur2.fetchall()
 
-        pass
+        self.assertEqual(len(seasons_list), 28)
+        self.assertTrue((619, "65", 2021) in seasons_list)
 
     def test_winners_since_search(self):
-
-        pass
+        d1 = winners_since_search(2010, self.cur2, self.conn2)
+        self.assertEqual(d1, {'Manchester City FC': 5, 'Liverpool FC': 1, 'Chelsea FC': 3, 'Leicester City FC': 1, 'Manchester United FC': 2})
+        d2 = winners_since_search(2022, self.cur2, self.conn2)
+        self.assertEqual(d2, {})
 
 
 def main():
