@@ -60,7 +60,7 @@ def make_players_table(data, cur, conn):
         cur.execute("select id from positions where position = ?", (player["position"],))
         res = cur.fetchall()
         position_id = res[0][0]
-        cur.execute("insert into players values (?,?,?,?,?)", (
+        cur.execute("insert or ignore into players values (?,?,?,?,?)", (
             player["id"],
             player["name"],
             position_id,
