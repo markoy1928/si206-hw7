@@ -134,7 +134,14 @@ def birthyear_nationality_search(age, country, cur, conn):
     # HINT: You'll have to use JOIN for this task.
 
 def position_birth_search(position, age, cur, conn):
-       pass
+    year = 2023
+
+    cur.execute("select pl.name, po.position, pl.birthyear from players pl inner join positions po on pl.position_id = po.id where po.position = ? and pl.birthyear > ?", 
+    (position, year - age))
+    res = cur.fetchall()
+    conn.commit()
+
+    return res
 
 
 # [EXTRA CREDIT]
@@ -173,7 +180,14 @@ def position_birth_search(position, age, cur, conn):
 #     the passed year. 
 
 def make_winners_table(data, cur, conn):
-    pass
+    cur.execute("CREATE TABLE IF NOT EXISTS Winners (id INT PRIMARY KEY, name TEXT)")
+
+    seasons = data["seasons"]
+    for season in seasons:
+        if season["winner"] is not None:
+            cur.execute("insert or ignore into winners values (?,?)", (season["winner"]["id"], season["winner"]["name"]))
+
+    conn.commit()
 
 def make_seasons_table(data, cur, conn):
     pass
@@ -238,7 +252,8 @@ class TestAllMethods(unittest.TestCase):
         self.cur2.execute('SELECT * from Winners')
         winners_list = self.cur2.fetchall()
 
-        pass
+        self.assertEqual(len(winners_list), 7)
+        self.assertTrue((65, "Manchester City FC"))
 
     def test_make_seasons_table(self):
         self.cur2.execute('SELECT * from Seasons')
