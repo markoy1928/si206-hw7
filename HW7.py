@@ -89,8 +89,6 @@ def nationality_search(countries, cur, conn):
         lst += res
     conn.commit()
 
-    print(lst)
-
     return lst
 
 ## [TASK 3]: 10 points
@@ -110,7 +108,13 @@ def nationality_search(countries, cur, conn):
 
 
 def birthyear_nationality_search(age, country, cur, conn):
-    pass
+    year = 2023
+
+    cur.execute("select name, nationality, birthyear from players where nationality = ? and birthyear < ?", (country, year - age))
+    res = cur.fetchall()
+    conn.commit()
+
+    return res
 
 ## [TASK 4]: 15 points
 # finish the function position_birth_search
